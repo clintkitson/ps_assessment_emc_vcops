@@ -2,7 +2,7 @@
 #
 # VMware - Virtu-Al.Net - @alanrenouf
 # EMC - vElemental.com -  @clintonskitson
-# 03/14/2014
+# 09/19/2014
 # ps_vcops.psm1 - module for pulling metrics from vCOps
 #
 ##
@@ -386,9 +386,10 @@ Function Get-vCOpsResourceMetric {
                 $endTime = [math]::round(([decimal](($endDate).ToUniversalTime() | Get-Date -UFormat "%s")*1000),0)
                 
                 ## Loop through the attributes for the resource to retrieve
-                $attribs = $tmpPsObject | Get-vCOpsResourceAttribute
-		[array]$arrAttributes = %{
+                
+		        [array]$arrAttributes = %{
                     if(!$metricKey -and !$metricKeyMatch) { 
+                        $attribs = $tmpPsObject | Get-vCOpsResourceAttribute
                         $attribs
                     } else {
                         if($metricKey -is [array]) {
@@ -396,15 +397,16 @@ Function Get-vCOpsResourceMetric {
                         }elseif($metricKey) {
                             New-Object -type PsObject -property @{"attr_key"=$metricKey}
                         }elseif($metricKeyMatch) {
-			   $regMatch = ($metricKeyMatch -join "|")
-			   $attribs | where {$_.attr_key -match $regMatch} | select attr_key
-			}
+			                $regMatch = ($metricKeyMatch -join "|")
+                            $attribs = $tmpPsObject | Get-vCOpsResourceAttribute
+			                $attribs | where {$_.attr_key -match $regMatch} | select attr_key
+			            }
                     }
                 }
-		if($arrAttributes.count -eq 0) { write-warning "Zero results with matching keys";return }
+		    if($arrAttributes.count -eq 0) { write-warning "Zero results with matching keys";return }
                 
-		$i=0
-                $arrAttributes | %{
+		    $i=0
+            $arrAttributes | %{
 		    $i++
 		    $pct = ((($i)/$arrAttributes.count)*100)
 		    if(!$tmpPsObject.name) { $tmpPsobject | Add-Member -membertype noteproperty -name name -value $tmpPsObject.resourceName -ea 0 }
